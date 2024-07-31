@@ -253,7 +253,7 @@ fn ws_error_is_not_final(err: &WsError) -> bool {
             _ => true,
         },
         #[cfg(feature = "tws")]
-        WsError::WsClosed(Some(frame)) => match frame.code.into() {
+        WsError::WsClosed(Some(code)) => match (*code).into() {
             code @ 4000..=4999_u16 =>
                 if let Some(code) = VoiceCloseCode::from_u16(code) {
                     code.should_resume()

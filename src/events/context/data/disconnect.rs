@@ -111,7 +111,7 @@ impl From<&WsError> for DisconnectReason {
                 _ => None,
             },
             #[cfg(feature = "tws")]
-            WsError::WsClosed(Some(frame)) => match frame.code.into() {
+            WsError::WsClosed(Some(code)) => match (*code).into() {
                 code @ 4000..=4999_u16 => VoiceCloseCode::from_u16(code),
                 _ => None,
             },
