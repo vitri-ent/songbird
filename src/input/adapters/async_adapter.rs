@@ -2,7 +2,12 @@ use crate::input::AudioStreamError;
 use async_trait::async_trait;
 use flume::{Receiver, RecvError, Sender, TryRecvError};
 use futures::{future::Either, stream::FuturesUnordered, FutureExt, StreamExt};
-use ringbuf::*;
+use ringbuf::{
+    traits::{Consumer, Observer, Split},
+    HeapCons,
+    HeapProd,
+    SharedRb,
+};
 use std::{
     io::{
         Error as IoError,
@@ -25,7 +30,7 @@ use tokio::{
 };
 
 struct AsyncAdapterSink {
-    bytes_in: HeapProducer<u8>,
+    bytes_in: HeapProd<u8>,
     req_rx: Receiver<AdapterRequest>,
     resp_tx: Sender<AdapterResponse>,
     stream: Box<dyn AsyncMediaSource>,
@@ -136,7 +141,7 @@ impl AsyncAdapterSink {
 /// pass along seek requests needed. This allows for passing bytes from exclusively `AsyncRead`
 /// streams (e.g., hyper HTTP sessions) to Songbird.
 pub struct AsyncAdapterStream {
-    bytes_out: HeapConsumer<u8>,
+    bytes_out: HeapCons<u8>,
     can_seek: bool,
     // Note: these are Atomic just to work around the need for
     // check_messages to take &self rather than &mut.
@@ -146,6 +151,8 @@ pub struct AsyncAdapterStream {
     resp_rx: Receiver<AdapterResponse>,
     notify_tx: Arc<Notify>,
 }
+
+unsafe impl Sync for AsyncAdapterStream {}
 
 impl AsyncAdapterStream {
     /// Wrap and pull from an async file stream, with an intermediate ring-buffer of size `buf_len`
@@ -278,7 +285,7 @@ impl Seek for AsyncAdapterStream {
             _ => unreachable!(),
         }
 
-        self.bytes_out.skip(self.bytes_out.capacity());
+        self.bytes_out.skip(self.bytes_out.capacity().into());
 
         _ = self.req_tx.send(AdapterRequest::SeekCleared);
 
