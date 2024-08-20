@@ -102,7 +102,10 @@ impl PlayoutBuffer {
                 let rtp = RtpPacket::new(&pkt.packet)
                     .expect("FATAL: earlier valid packet now invalid (fetch)");
 
-                let curr_ts = self.current_timestamp.unwrap();
+                let curr_ts = self
+                    .current_timestamp
+                    .replace(rtp.get_timestamp().0)
+                    .unwrap();
                 let ts_diff = curr_ts - rtp.get_timestamp().0;
 
                 if (ts_diff.0 as i32) <= 0 {
@@ -126,10 +129,6 @@ impl PlayoutBuffer {
         if self.buffer.is_empty() {
             self.playout_mode = PlayoutMode::Fill;
             self.current_timestamp = None;
-        }
-
-        if let Some(ts) = self.current_timestamp.as_mut() {
-            *ts += &(MONO_FRAME_SIZE as u32);
         }
 
         out
