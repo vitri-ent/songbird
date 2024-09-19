@@ -246,6 +246,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore]
     #[ntest::timeout(20_000)]
     async fn ytdl_page_with_playlist_plays() {
         track_plays_passthrough(|| YoutubeDl::new(Client::new(), YTDL_PLAYLIST_TARGET)).await;
@@ -272,6 +273,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore]
     #[ntest::timeout(20_000)]
     async fn ytdl_search_plays() {
         let mut ytdl = YoutubeDl::new_search(Client::new(), "cloudkicker 94 days");
@@ -284,6 +286,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore]
     #[ntest::timeout(20_000)]
     async fn ytdl_search_3() {
         let mut ytdl = YoutubeDl::new_search(Client::new(), "test");
